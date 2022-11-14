@@ -5,14 +5,24 @@
   // Get info from the URL:
   $item_id = $_GET['item_id'];
 
-  // TODO: Use item_id to make a query to the database.
+  if($item_id){
+  $getListingQuery = "select * from tbl_listings where listing_id = $item_id";
+  $listing = $mysqli->query($getListingQuery);
+
+  if($listing->num_rows < 1)
+  // Demonstration of what listings will look like using dummy data.
+    die("Something went wrong");
+  }
+
+  //$data = $mysqli->mysqli_fetch_assoc($listing);
+  $data = $listing->fetch_assoc();
 
   // DELETEME: For now, using placeholder data.
-  $title = "Placeholder title";
-  $description = "Description blah blah blah";
-  $current_price = 30.50;
+  $title = $data['title'];
+  $description = $data['details'];
+  $current_price = $data['starting_price'];
   $num_bids = 1;
-  $end_time = new DateTime('2020-11-02T00:00:00');
+  $end_time = new DateTime($data['end_date']);
 
   // TODO: Note: Auctions that have ended may pull a different set of data,
   //       like whether the auction ended in a sale or was cancelled due
