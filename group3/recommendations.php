@@ -1,6 +1,6 @@
 <?php include_once("header.php")?>
 <?php require("utilities.php")?>
-<?php include 'opendb.php'?>
+<?php include 'include/dbconfig.php'?>
 <div class="container">
 
 <h2 class="my-3">Recommendations for you</h2>
@@ -10,16 +10,18 @@
 $results_per_page = 5;
 
 //Checks to see if a buyer is logged in
+//Checks to see if a buyer is logged in
+$user_id = $_SESSION['user']['id'];
 
 
 //Query takes live bids that users with similar bidding history have bid on
-	$recco_listing_query = "SELECT * FROM tbl_listings WHERE (CURRENT_TIMESTAMP<endtime) AND listing_id NOT IN(SELECT listing_id FROM biding WHERE user_id = $user_id) AND listing_id IN(
+	$recco_listing_query = "SELECT * FROM tbl_listings WHERE (CURRENT_TIMESTAMP<end_date) AND listing_id NOT IN(SELECT listing_id FROM biding WHERE user_id = $user_id) AND listing_id IN(
 								SELECT listing_id FROM biding WHERE user_id != $user_id AND user_id IN(
 									SELECT user_id FROM biding WHERE listing_id IN(
 										SELECT listing_id FROM biding WHERE user_id = $user_id))) LIMIT $results_per_page";
 
 //Counts the number of these bids for pagination
-	$num_recco_query = "SELECT COUNT(*) FROM tbl_listings WHERE (CURRENT_TIMESTAMP<endtime) AND listing_id NOT IN(SELECT listing_id FROM biding WHERE user_id = $user_id) AND listing_id IN(
+	$num_recco_query = "SELECT COUNT(*) FROM tbl_listings WHERE (CURRENT_TIMESTAMP<end_date) AND listing_id NOT IN(SELECT listing_id FROM biding WHERE user_id = $user_id) AND listing_id IN(
 								SELECT listing_id FROM biding WHERE user_id != $user_id AND user_id IN(
 									SELECT user_id FROM biding WHERE listing_id IN(
 										SELECT listing_id FROM biding WHERE user_id = $user_id)))";
