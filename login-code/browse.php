@@ -109,7 +109,7 @@
 
  
   if (!isset($_GET['order_by'])) {
-    $query_ordered = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN (tbl_listings.end_date > CURRENT_TIMESTAMP) THEN TIMEDIFF(tbl_listings.end_date,CURRENT_TIMESTAMP) 
+    $query_result = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN (tbl_listings.end_date > CURRENT_TIMESTAMP) THEN TIMEDIFF(tbl_listings.end_date,CURRENT_TIMESTAMP) 
 			ELSE ADDTIME((TIMEDIFF(CURRENT_TIMESTAMP, tbl_listings.end_date)),\"10000:0:0\") END) 
       LIMIT $results_per_page";
   }
@@ -117,30 +117,29 @@
     $order_by = $_GET['order_by'];
 
     if ($order_by == '') {
-      $query_ordered = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN (tbl_listings.end_date > CURRENT_TIMESTAMP) THEN TIMEDIFF(tbl_listings.end_date,CURRENT_TIMESTAMP) 
+      $query_result = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN (tbl_listings.end_date > CURRENT_TIMESTAMP) THEN TIMEDIFF(tbl_listings.end_date,CURRENT_TIMESTAMP) 
 			ELSE ADDTIME((TIMEDIFF(CURRENT_TIMESTAMP, tbl.listings.end_date)),\"10000:0:0\") END)
       LIMIT $results_per_page";
     }
 
     if ($order_by == 'date') {
-			$query_ordered = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN (tbl_listings.end_date > CURRENT_TIMESTAMP) THEN TIMEDIFF(tbl_listings.end_date,CURRENT_TIMESTAMP) 
+			$query_result = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN (tbl_listings.end_date > CURRENT_TIMESTAMP) THEN TIMEDIFF(tbl_listings.end_date,CURRENT_TIMESTAMP) 
 			ELSE ADDTIME((TIMEDIFF(CURRENT_TIMESTAMP, tbl_listings.end_date)),\"10000:0:0\") END) 
       LIMIT $results_per_page";
 		}
 		
 		if ($order_by == 'pricelow') {
-			$query_ordered = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN MAX(biding.biding_price) IS NULL THEN tbl_listings.starting_price
+			$query_result = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN MAX(biding.biding_price) IS NULL THEN tbl_listings.starting_price
 			ELSE MAX(biding.biding_price) END)
       LIMIT $results_per_page";
 		}
 
 		if ($order_by == 'pricehigh') {
-			$query_ordered = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN MAX(biding.biding_price) IS NULL THEN tbl_listings.starting_price
+			$query_result = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN MAX(biding.biding_price) IS NULL THEN tbl_listings.starting_price
 			ELSE MAX(biding.biding_price) END) 
       DESC LIMIT $results_per_page";
 		}
   }
-
 
   $temp = explode(" ",$query);
 	$temp[1] = "COUNT(DISTINCT tbl_listings.listing_id)";
@@ -179,7 +178,7 @@
 		{
 			$current_page = $_GET['page'];
 			$offset = ($current_page*$results_per_page)-$results_per_page;
-			$query_ordered .= " OFFSET $offset"; 
+			$query_result .= " OFFSET $offset"; 
 
 		}
 	}
@@ -204,9 +203,8 @@
 
 
 <?php 
-  $result = $mysqli->query($query_ordered)
+  $result = $mysqli->query($query_result)
     or die('Error making select users query');
-
   while ($row = mysqli_fetch_array($result)){	
 
     $count_bid_query = "SELECT COUNT(*) FROM biding WHERE listing_id = {$row['listing_id']}";
@@ -252,12 +250,18 @@
       $querystring .= "$key=$value&amp;";
     }
   }
-  
+  if (!isset($_GET['page'])){
+    $curr_page = 1;
+  }
+  else{
+    $curr_page = $_GET['page'];
+  }
+
   $high_page_boost = max(3 - $curr_page, 0);
   $low_page_boost = max(2 - ($max_page - $curr_page), 0);
   $low_page = max(1, $curr_page - 2 - $low_page_boost);
   $high_page = min($max_page, $curr_page + 2 + $high_page_boost);
-  
+
   if ($curr_page != 1) {
     echo('
     <li class="page-item">
