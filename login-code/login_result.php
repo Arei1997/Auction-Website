@@ -13,6 +13,6 @@ $_SESSION['account_type'] = "buyer";
 echo('<div class="text-center">You are now logged in! You will be redirected shortly.</div>');
 
 // Redirect to index after 5 seconds
-header("refresh:5;url=index.php");
+header("Location: index.php");
 
 ?>

@@ -4,14 +4,23 @@
 <?php
   // Get info from the URL:
   $item_id = $_GET['item_id'];
+  //Store the current item ID:
+  $_SESSION['curitem_id'] = $item_id;
 
   if($item_id){
   $getListingQuery = "select * from tbl_listings where listing_id = $item_id";
   $listing = $mysqli->query($getListingQuery);
+  
+  
+  /*
+  $getBidingQuery = "select COUNT(*) from biding where listing_id = $itemid ";
+  $biding = $mysqli->query($getBidingQuery);
+*/
+
 
   if($listing->num_rows < 1)
   // Demonstration of what listings will look like using dummy data.
-    die("Something went wrong");
+    die("Something went wrong!!!");
   }
 
   //$data = $mysqli->mysqli_fetch_assoc($listing);
@@ -22,8 +31,8 @@
   $description = $data['details'];
   $current_price = $data['starting_price'];
   $num_bids = 1;
-  $end_time = new DateTime($data['end_date']);
-
+  $end_time = date_create($data['end_date']);
+  
   // TODO: Note: Auctions that have ended may pull a different set of data,
   //       like whether the auction ended in a sale or was cancelled due
   //       to lack of high-enough bids. Or maybe not.
@@ -92,7 +101,7 @@
         <div class="input-group-prepend">
           <span class="input-group-text">£</span>
         </div>
-	    <input type="number" class="form-control" id="bid">
+	    <input type="number" class="form-control" id="bid" name="bidprice">
       </div>
       <button type="submit" class="btn btn-primary form-control">Place bid</button>
     </form>

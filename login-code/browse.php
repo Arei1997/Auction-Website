@@ -1,5 +1,6 @@
 <?php include_once("header.php")?>
 <?php require("utilities.php")?>
+<?php /*include 'dbconfig.php'*/?>
 
 <div class="container">
 
@@ -20,25 +21,29 @@
               <i class="fa fa-search"></i>
             </span>
           </div>
-          <input type="text" class="form-control border-left-0" id="keyword" placeholder="Search for anything">
+          <input type="text" class="form-control border-left-0" name="keyword" id="keyword" placeholder="Search for anything">
         </div>
       </div>
     </div>
     <div class="col-md-3 pr-0">
       <div class="form-group">
         <label for="cat" class="sr-only">Search within:</label>
-        <select class="form-control" id="cat">
+        <select class="form-control" id="cat" name="cat">
           <option selected value="all">All categories</option>
-          <option value="fill">Fill me in</option>
-          <option value="with">with options</option>
-          <option value="populated">populated from a database?</option>
+          <?php $category_query = "SELECT name FROM categories ORDER by name";
+          $category_return = $mysqli->query($category_query)
+              or die('Error: Could not make category query');
+          while ($categoryrow = mysqli_fetch_array($category_return)) {
+              echo ('<option value='. $categoryrow[0]. '>'. $categoryrow[0] .'</option>');
+          }
+          ?>
         </select>
       </div>
     </div>
     <div class="col-md-3 pr-0">
       <div class="form-inline">
         <label class="mx-2" for="order_by">Sort by:</label>
-        <select class="form-control" id="order_by">
+        <select class="form-control" id="order_by" name="order_by">
           <option selected value="pricelow">Price (low to high)</option>
           <option value="pricehigh">Price (high to low)</option>
           <option value="date">Soonest expiry</option>
@@ -56,72 +61,190 @@
 </div>
 
 <?php
-  // Retrieve these from the URL
+ 
+  $results_per_page = 10;
+
   if (!isset($_GET['keyword'])) {
-    // TODO: Define behavior if a keyword has not been specified.
-  }
+    $query = "SELECT tbl_listings.listing_id, tbl_listings.title, tbl_listings.details, MAX(biding.biding_price), tbl_listings.starting_price, tbl_listings.end_date
+				   FROM tbl_listings LEFT JOIN biding ON tbl_listings.listing_id=biding.listing_id WHERE title IS NOT NULL";
+	}
+  
   else {
-    $keyword = $_GET['keyword'];
-  }
+    $keyword = mysqli_real_escape_string(mysqli_connect('localhost', 'root', '', 'mydatabase'), $_GET['keyword']);
+    if ($keyword == '')
+		{
+			 $query = "SELECT tbl_listings.listing_id, tbl_listings.title, tbl_listings.details, MAX(biding.biding_price), tbl_listings.starting_price, tbl_listings.end_date
+					   FROM tbl_listings LEFT JOIN biding ON tbl_listings.listing_id=biding.listing_id WHERE title IS NOT NULL";
+		}
+		else
+		{
+			 $query = "SELECT tbl_listings.listing_id, tbl_listings.title, tbl_listings.details, MAX(biding.biding_price), tbl_listings.starting_price, tbl_listings.end_date
+					   FROM tbl_listings LEFT JOIN biding ON tbl_listings.listing_id=biding.listing_id WHERE title LIKE '%$keyword%'";
+		}
+  
+	}
+  
 
   if (!isset($_GET['cat'])) {
-    // TODO: Define behavior if a category has not been specified.
+    {
+      $query .= " AND category_id IS NOT NULL";
+   }
   }
   else {
     $category = $_GET['cat'];
+    if ($category == "all")
+		{
+			 $query .= " AND category_id IS NOT NULL";
+		}
+		else
+		{
+			 $categoryID_query = "SELECT category_id FROM categories WHERE name = '$category'";
+			 $categoryID_result = $mysqli->query($categoryID_query) 
+				or die('Error: Could not complete title query');
+			 $categoryID = mysqli_fetch_array($categoryID_result);
+			 $category = $categoryID[0];
+			 $query .= " AND category_id = '$category'";
+		}
   }
-  
+
+ 
   if (!isset($_GET['order_by'])) {
-    // TODO: Define behavior if an order_by value has not been specified.
+    $query_ordered = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN (tbl_listings.end_date > CURRENT_TIMESTAMP) THEN TIMEDIFF(tbl_listings.end_date,CURRENT_TIMESTAMP) 
+			ELSE ADDTIME((TIMEDIFF(CURRENT_TIMESTAMP, tbl_listings.end_date)),\"10000:0:0\") END) 
+      LIMIT $results_per_page";
   }
   else {
-    $ordering = $_GET['order_by'];
+    $order_by = $_GET['order_by'];
+
+    if ($order_by == '') {
+      $query_ordered = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN (tbl_listings.end_date > CURRENT_TIMESTAMP) THEN TIMEDIFF(tbl_listings.end_date,CURRENT_TIMESTAMP) 
+			ELSE ADDTIME((TIMEDIFF(CURRENT_TIMESTAMP, tbl.listings.end_date)),\"10000:0:0\") END)
+      LIMIT $results_per_page";
+    }
+
+    if ($order_by == 'date') {
+			$query_ordered = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN (tbl_listings.end_date > CURRENT_TIMESTAMP) THEN TIMEDIFF(tbl_listings.end_date,CURRENT_TIMESTAMP) 
+			ELSE ADDTIME((TIMEDIFF(CURRENT_TIMESTAMP, tbl_listings.end_date)),\"10000:0:0\") END) 
+      LIMIT $results_per_page";
+		}
+		
+		if ($order_by == 'pricelow') {
+			$query_ordered = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN MAX(biding.biding_price) IS NULL THEN tbl_listings.starting_price
+			ELSE MAX(biding.biding_price) END)
+      LIMIT $results_per_page";
+		}
+
+		if ($order_by == 'pricehigh') {
+			$query_ordered = $query . " GROUP BY tbl_listings.listing_id ORDER BY (CASE WHEN MAX(biding.biding_price) IS NULL THEN tbl_listings.starting_price
+			ELSE MAX(biding.biding_price) END) 
+      DESC LIMIT $results_per_page";
+		}
   }
+
+
+  $temp = explode(" ",$query);
+	$temp[1] = "COUNT(DISTINCT tbl_listings.listing_id)";
+	$temp[2] = "";
+	$temp[3] = "";
+	$temp[4] = "";
+	$temp[5] = "";
+	$temp[6] = "";
+
+
+
+  $num_query = implode(" ",$temp);
+ 
+	$num_result = $mysqli->query($num_query)
+			or die('Error making count query');
+
+	$row = mysqli_fetch_array($num_result);
+
+	$num_results = $row[0]; 
+
+	if ($num_results < 1) {
+		$max_page = 1;
+	}
+	else {
+		$max_page = ceil($num_results / $results_per_page);
+	}
+	if (!isset($_GET['page'])){
+		$curr_page = 1;
+		}
+	else {
+		if ($_GET['page'] == 1) 
+		{
+			$curr_page = 1;
+		}
+		else
+		{
+			$current_page = $_GET['page'];
+			$offset = ($current_page*$results_per_page)-$results_per_page;
+			$query_ordered .= " OFFSET $offset"; 
+
+		}
+	}
+
   
-  if (!isset($_GET['page'])) {
-    $curr_page = 1;
-  }
-  else {
-    $curr_page = $_GET['page'];
-  }
-  
-  
-  /* TODO: Use above values to construct a query. Use this query to 
-     retrieve data from the database. (If there is no form data entered,
-     decide on appropriate default value/default query to make. */
-  
-  /* For the purposes of pagination, it would also be helpful to know the
-     total number of results that satisfy the above query */
-  $num_results = 50; // TODO: Calculate me for real
-  $results_per_page = 50;
-  $max_page = ceil($num_results / $results_per_page);
 ?>
+
 
 <div class="container mt-5">
 
 <!-- TODO: If result set is empty, print an informative message. Otherwise... -->
+<?php
+  if ($num_results < 1){
+      echo("No results for that search!");
+    }
+?>
 
 <ul class="list-group">
 
 <!-- TODO: Use a while loop to print a list item for each auction listing
      retrieved from the query -->
 
-<?php
-    $getUserListingQuery = "select * from tbl_listings";
-    $listings = $mysqli->query($getUserListingQuery);
-    foreach($listings as $row){
-      print_listing_li($row['listing_id'], $row['title'], $row['details'], $row['starting_price'], 0, $row['end_date']);
+
+<?php 
+  $result = $mysqli->query($query_ordered)
+    or die('Error making select users query');
+
+  while ($row = mysqli_fetch_array($result)){	
+
+    $count_bid_query = "SELECT COUNT(*) FROM biding WHERE listing_id = {$row['listing_id']}";
+    $count_bid_result = $mysqli->query($count_bid_query)
+      or die('Error finding top bid');
+
+    $bid_count = mysqli_fetch_array($count_bid_result);
+
+    if ($bid_count[0] == 0) {
+      print_listing_li($row['listing_id'], $row['title'], $row['details'], $row['starting_price'], $bid_count[0], date_create($row['end_date']));
     }
+    else {
+
+      print_listing_li($row['listing_id'], $row['title'], $row['details'], $row['MAX(biding.biding_price)'], $bid_count[0], date_create($row['end_date']));
+
+    }
+
+  }
+
+?>
+
+<?php
+/*
+    $getUserListingQuery = "SELECT * from tbl_listings";
+    $tbl_listings = $mysqli->query($getUserListingQuery);
+    foreach($tbl_listings as $row){
+      print_listing_li($row['listing_id'], $row['title'], $row['details'], $row['starting_price'], 0, $row['end_date']);
+    }*/
 ?>
 
 </ul>
 
-<!-- Pagination for results listings -->
+
+<!-- Pagination for results tbl_listings -->
 <nav aria-label="Search results pages" class="mt-5">
   <ul class="pagination justify-content-center">
   
 <?php
-
   // Copy any currently-set GET variables to the URL.
   $querystring = "";
   foreach ($_GET as $key => $value) {

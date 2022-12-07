@@ -20,11 +20,20 @@
   $user_id = $_SESSION['user']['id'];
   $getUserListingQuery = "select * from tbl_listings where user_id = $user_id";
   $listings = $mysqli->query($getUserListingQuery);
+  
   // Demonstration of what listings will look like using dummy data.
-  foreach($listings as $row){
-    print_listing_li($row['listing_id'], $row['title'], $row['details'], $row['starting_price'], 0, $row['end_date']);
-  }
+  while($row = mysqli_fetch_array($listings)){
+    $listingone = $row['listing_id'];
 
+    $getBidingNumQuery = "SELECT COUNT(*) from biding WHERE listing_id = $listingone";
+    $BidingNum = $mysqli->query($getBidingNumQuery);   
+    $BidingNumRow = mysqli_fetch_array($BidingNum);
+    
+    
+    print_listing_li($row['listing_id'], $row['title'], $row['details'], $row['starting_price'], $BidingNumRow[0], date_create($row['end_date']));
+  }
+  
+  
 ?>
 
 </ul>

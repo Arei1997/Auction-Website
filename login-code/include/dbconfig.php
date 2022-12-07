@@ -1,7 +1,7 @@
 <?php
 
 
-$mysqli = new mysqli("localhost", "root", "", "database");
+$mysqli = new mysqli("localhost", "root", "", "mydatabase");
 $base_url = "http://localhost/login-code";
 
 

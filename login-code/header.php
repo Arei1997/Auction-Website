@@ -21,7 +21,7 @@
   <!-- Custom CSS file -->
   <link rel="stylesheet" href="css/custom.css">
 
-  <title>[My Auction Site] <!--CHANGEME!--></title>
+  <title>Auction Family</title>
 </head>
 
 
@@ -29,7 +29,7 @@
 
 <!-- Navbars -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light mx-2">
-  <a class="navbar-brand" href="#">Site Name <!--CHANGEME!--></a>
+  <a class="navbar-brand" href="#">Auction Family</a>
   <ul class="navbar-nav ml-auto">
     <li class="nav-item">
     
@@ -88,7 +88,7 @@ if(isset($_POST['btnLogin'])){
     if (password_verify($password, $loginData['password'])) {
       $_SESSION['user'] = $loginData;
       echo "<script>alert('Login successful');</script>";
-      header("Location: $base_url/mylistings.php");
+      header("Location: mylistings.php");
     }else{
       echo "<script>alert('Invalid username or password');</script>";
     }
