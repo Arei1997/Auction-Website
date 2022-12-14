@@ -9,24 +9,17 @@ require 'PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/src/SMTP.php';
 
 // gets buyer with the highest bid
-$buyer_email_query = "SELECT users.email_address, tbl_listings.title FROM users, tbl_listings WHERE EXISTS(
+$buyer_email_query = "SELECT email_address, title FROM biding LEFT JOIN tbl_listings ON biding.listing_id = tbl_listings.listing_id LEFT JOIN users ON biding.user_id = users.id
+WHERE (biding_price, biding.listing_id) IN( SELECT MAX(biding_price), listing_id FROM biding
+WHERE listing_id IN( SELECT listing_id FROM tbl_listings WHERE NOW() > end_date AND DATE_ADD(end_date, INTERVAL 120 MINUTE) >= NOW()) AND starting_price >= reserve_price GROUP BY listing_id)";
 
-
-SELECT user_id FROM biding as b WHERE EXISTS (
-SELECT * FROM tbl_listings as l WHERE NOW() > end_date AND DATE_ADD(end_date, INTERVAL 30 MINUTE) >= NOW() AND l.listing_id = b.listing_id AND l.starting_price = b.biding_price
-) AND b.user_id = users.id
-    );";
-
-$seller_email_query = "SELECT users.email_address, tbl_listings.title FROM users, tbl_listings WHERE users.id IN(
-  SELECT user_id FROM tbl_listings WHERE NOW() > end_date AND DATE_ADD(end_date, INTERVAL 30 MINUTE) >= NOW());";
+$seller_email_query = "SELECT title, email_address FROM users INNER JOIN tbl_listings ON users.id = tbl_listings.user_id WHERE NOW() > end_date AND DATE_ADD(end_date, INTERVAL 120 MINUTE) >= NOW()";
 
 $seller_email_result = $mysqli->query($seller_email_query)
 		or die('Error making seller email query');
 $buyer_email_result = $mysqli->query($buyer_email_query)
     or die('Error making winner email query');// gets seller
-?>
 
-<?php
 // mailer function
 function smtpmailer($to, $from, $from_name, $subject, $body)
 {
@@ -65,17 +58,15 @@ function smtpmailer($to, $from, $from_name, $subject, $body)
         return $error;
     }
 }
-?>
 
-<?php
 // email seller
 			while($row = mysqli_fetch_array($seller_email_result)){
 
 				$from = '978338509@qq.com'; // 换成你自己的QQ邮箱
 				$name = 'Auction administrator';
-				$toSeller   = $row[0];
-				$subjSeller = 'Your auction" '.$row[1].' "has finished.';
-				$msgSeller = 'Your auction called "'.$row[1].'" has now ended. Be sure to check out what bids you got!';
+				$toSeller   = $row[1];
+				$subjSeller = 'Your auction" '.$row[0].' "has finished.';
+				$msgSeller = 'Your auction called "'.$row[0].'" has now ended. Be sure to check out what bids you got!';
 				$error=smtpmailer($toSeller,$from,$name,$subjSeller,$msgSeller);
 
 			}
