@@ -1,0 +1,18 @@
+Users to TblListings:
+One to many relationship (non-mandatory participation): Each user can create none or many listings, but each listings can only be created by one user.
+					 		Foreign key:User_id in TblListings.
+
+Categories to TblListings:
+One to many relationship (non-mandatory participation): Each listing must have only one categoryId, but the same categoryId may be found across listings multiple listings (that belong in the same category).
+							Foreign key: categoryId in TblListings.
+
+Users to Biding:
+One to many relationship (non-mandatory participation): Each bidId is associated with a single user but each user can make no or many bids.
+							Foreign key: userId in Biding.
+
+TblListings to Biding:
+One to many relationship (non-mandatory participation): Each bidId is associated with a single listingId but each listingId can have no or many bids.
+							Foreign key: listingId in Biding
+
+Users to WatchList:
+One to many relationship (non-mandatory participation): 
