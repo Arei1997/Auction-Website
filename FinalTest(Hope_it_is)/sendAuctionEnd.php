@@ -9,7 +9,7 @@ require 'PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/src/SMTP.php';
 
 // gets buyer with the highest bid
-$buyer_email_query = "SELECT email_address FROM users WHERE EXISTS(
+$buyer_email_query = "SELECT users.email_address, tbl_listings.title FROM users, tbl_listings WHERE EXISTS(
 
 
 SELECT user_id FROM biding as b WHERE EXISTS (
@@ -37,12 +37,12 @@ function smtpmailer($to, $from, $from_name, $subject, $body)
     $mail->isSMTP();
     $mail->SMTPDebug = SMTP::DEBUG_SERVER;
     $mail->SMTPAuth   = TRUE;
-    $mail->SMTPSecure = "tls"; // 使用ssl
+    $mail->SMTPSecure = "ssl"; // 使用ssl
     /* SMTP parameters. */
-    $mail->Port       = 578; // 端口改成456
-    $mail->Host       = "smtp-relay.sendinblue.com";
-    $mail->Username   = "comp0178group3@gmail.com";
-    $mail->Password   = "ta0gPKXszQI61yB9";
+    $mail->Port       = 465; // 端口改成465
+    $mail->Host       = "smtp.qq.com";
+    $mail->Username   = "978338509@qq.com";
+    $mail->Password   = "snywkqllddzzbfda";
     $mail->isHTML(true);
     /* Add a recipient. */
     $mail->addAddress($to, 'User');
@@ -71,18 +71,18 @@ function smtpmailer($to, $from, $from_name, $subject, $body)
 // email seller
 			while($row = mysqli_fetch_array($seller_email_result)){
 
-				$from = 'comp0178group3@gmail.com'; // 换成你自己的QQ邮箱
+				$from = '978338509@qq.com'; // 换成你自己的QQ邮箱
 				$name = 'Auction administrator';
 				$toSeller   = $row[0];
 				$subjSeller = 'Your auction" '.$row[1].' "has finished.';
-				$msgSeller = 'Your auction called "'.$row[0].'" has now ended. Be sure to check out what bids you got!';
+				$msgSeller = 'Your auction called "'.$row[1].'" has now ended. Be sure to check out what bids you got!';
 				$error=smtpmailer($toSeller,$from,$name,$subjSeller,$msgSeller);
 
 			}
 // email buyer
 			while($row = mysqli_fetch_array($buyer_email_result)){
 
-        $from = 'comp0178group3@gmail.com'; // 换成自己的QQ邮箱
+        $from = '978338509@qq.com'; // 换成自己的QQ邮箱
         $name = 'Auction administrator';
         $toBuyer   = $row[0];
         $subjBuyer = 'You are the winner!';
