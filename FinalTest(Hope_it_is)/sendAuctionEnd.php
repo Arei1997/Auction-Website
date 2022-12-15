@@ -11,9 +11,9 @@ require 'PHPMailer/src/SMTP.php';
 // gets buyer with the highest bid
 $buyer_email_query = "SELECT email_address, title FROM biding LEFT JOIN tbl_listings ON biding.listing_id = tbl_listings.listing_id LEFT JOIN users ON biding.user_id = users.id
 WHERE (biding_price, biding.listing_id) IN( SELECT MAX(biding_price), listing_id FROM biding
-WHERE listing_id IN( SELECT listing_id FROM tbl_listings WHERE NOW() > end_date AND DATE_ADD(end_date, INTERVAL 120 MINUTE) >= NOW()) AND starting_price >= reserve_price GROUP BY listing_id)";
+WHERE listing_id IN( SELECT listing_id FROM tbl_listings WHERE NOW() > end_date AND DATE_ADD(end_date, INTERVAL 30 MINUTE) >= NOW()) AND starting_price >= reserve_price GROUP BY listing_id)";
 
-$seller_email_query = "SELECT title, email_address FROM users INNER JOIN tbl_listings ON users.id = tbl_listings.user_id WHERE NOW() > end_date AND DATE_ADD(end_date, INTERVAL 120 MINUTE) >= NOW()";
+$seller_email_query = "SELECT title, email_address FROM users INNER JOIN tbl_listings ON users.id = tbl_listings.user_id WHERE NOW() > end_date AND DATE_ADD(end_date, INTERVAL 30 MINUTE) >= NOW()";
 
 $seller_email_result = $mysqli->query($seller_email_query)
 		or die('Error making seller email query');

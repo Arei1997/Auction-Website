@@ -4,9 +4,9 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-require 'PHPMailer/Exception.php';
-require 'PHPMailer/PHPMailer.php';
-require 'PHPMailer/SMTP.php';
+require 'PHPMailer/src/Exception.php';
+require 'PHPMailer/src/PHPMailer.php';
+require 'PHPMailer/src/SMTP.php';
 ?>
 <?php
 function smtpmailer($to, $from, $from_name, $subject, $body)
@@ -47,6 +47,7 @@ function smtpmailer($to, $from, $from_name, $subject, $body)
     }
 }
 
+
 if (isset($_SESSION['user'])){
   $listing_id = $_SESSION['curitem_id'];
 
@@ -75,14 +76,13 @@ if (isset($_SESSION['user'])){
 	 or die('Error making outbid email query');
    $outbid_email = mysqli_fetch_array($outbid_result);
 
-
 $buyer_notified = 0;
 
 if ($buyer_email[0] == $outbid_email[0]) {
 	$name = "Auction administrator"; //sender’s name
 	$from = "978338509@qq.com"; //sender’s e mail address
 	$recipient = "$buyer_email[0]"; //recipient
-	$mail_body = "This is an email confirming that you have bid £$bid_price on the auction called '$listing_title[0]'"; //mail body
+	$mail_body = "You have bid £$bid_price on the auction called '$listing_title[0]'"; //mail body
 	$subject = "Bid confirmation"; //subject
 	$error = smtpmailer($recipient,$from,$name,$subject,$mail_body); //mail function
 	$buyer_notified = 1;
@@ -115,15 +115,17 @@ while ($row = mysqli_fetch_array($watchlist_result))
 		$error = smtpmailer($recipient,$from,$name,$subject,$mail_body); //mail function
 	}
 	else {
-		$name = "Happy Auction House"; //sender’s name
+		$name = "Auction administrator"; //sender’s name
 		$from = "978338509@qq.com"; //sender’s e mail address
 		$recipient = "$row[0]"; //recipient
 		$mail_body = "The auction called '$listing_title[0]' which you are watching just received a bid for £$bid_price "; //mail body
 		$subject = "Auction you are watching"; //subject
 		$error = smtpmailer($recipient,$from,$name,$subject,$mail_body); //mail function
+
+  }
+
+
 	}
-}
-}
 
-
+}
 ?>
