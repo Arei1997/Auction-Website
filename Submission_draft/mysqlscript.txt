@@ -1,0 +1,120 @@
+CREATE DATABASE mydatabase;
+  
+CREATE USER 'mytest'@'localhost'
+	IDENTIFIED BY 'mypassword';
+
+GRANT SELECT, UPDATE, INSERT, DELETE
+    ON mydatabase.*
+    TO 'mytest'@'localhost';
+
+USE mydatabase;
+
+CREATE TABLE IF NOT EXISTS `users` (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  username text,
+  email_address text,
+  address text,
+  post_code text,
+  password text,
+  is_active tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (id)
+) ;
+
+CREATE TABLE IF NOT EXISTS `categories` (
+  category_id int(11) NOT NULL AUTO_INCREMENT,
+  name tinytext,
+  PRIMARY KEY (`category_id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `tbl_listings` (
+  listing_id int(11) NOT NULL AUTO_INCREMENT,
+  title varchar(500) DEFAULT NULL,
+  details text,
+  category_id int(11) DEFAULT NULL,
+  starting_price DECIMAL(10,2) DEFAULT NULL,
+  reserve_price DECIMAL(10,2) DEFAULT NULL,
+  end_date DATETIME DEFAULT NULL,
+  user_id int(11),
+  is_active int(11) DEFAULT NULL,
+  created_at datetime DEFAULT NULL,
+  deleted_at datetime DEFAULT NULL,
+  PRIMARY KEY (listing_id), 
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (category_id) REFERENCES categories(category_id)
+) ;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `biding`(
+   bid_id int(11) NOT NULL AUTO_INCREMENT,
+   listing_id int(11),
+   user_id int(11),
+   biding_price DECIMAL(10,2) DEFAULT NULL,
+   biding_time datetime DEFAULT NULL,
+   PRIMARY KEY(bid_id),
+   FOREIGN KEY(listing_id) REFERENCES tbl_listings(listing_id),
+   FOREIGN KEY(user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS `watchlist`(
+   watchlist_id int(11) NOT NULL AUTO_INCREMENT,
+   user_id int(11),
+   listing_id int(11),
+   PRIMARY KEY(watchlist_id),
+   FOREIGN KEY(listing_id) REFERENCES tbl_listings(listing_id),
+   FOREIGN KEY(user_id) REFERENCES users(id)
+);
+
+
+
+INSERT INTO `users` (`id`, `username`, `email_address`, `address`, `post_code`, `password`, `is_active`) VALUES
+(1, 'TestAccount1', 'Test1@Email.com', 'Address Mock 45', '123 8GG', '$2y$10$L7h03Bcz84JdKh.s26LM0eZhRBvQXJjmGzT9IShlQG.7kd8qB79LO', 1),
+(2, 'TestAccount2', 'Test@Email.com', 'Address Mock 44 ', '123 8BB', '$2y$10$v824APpbcQxzG0oBhhILQuptCIx.mfbUnbXO6BilHgw8X2Yrtq0p2', 1),
+(3, 'TestAccount3', 'Test@Email.com', 'Address Mock 43', '123 8GB', '$2y$10$z9yuor8jV4JIMhi/mJ2s3u7XzkLXVwR6/TBhWCXbM3Xj9yQ09xP/y', 1),
+(4, 'TestAccount4', 'Test@Email.com', 'Address Mock 43', '123 8GB', '$2y$10$LXZfwir3/.8eyfFLP.g/Be/fIfvh1bEP6J3vRlPAO7Gcl.9it0/mO', 1);
+
+
+
+INSERT INTO `categories` (`category_id`,`name`) VALUES
+(1, 'Home'),
+(2, 'Clothes'),
+(3, 'Kids'),
+(4, 'Sports'),
+(5, 'Office '),
+(6, 'Miscellaneous'),
+(7, 'Cameras'),
+(8, 'Appliances'),
+(9, 'Phones'),
+(10, 'Computers'),
+(11, 'Music'),
+(12, 'Health'),
+(13, 'Cars'),
+(14, 'DIY'),
+(15, 'Stereos'),
+(16, 'TVs'),
+(17, 'Consoles'),
+(18, 'Outdoors'),
+(19, 'Tickets'),
+(20, 'Leisure'),
+(21, 'Films'),
+(22, 'Books'),
+(23, 'Bicycles');
+
+
+INSERT INTO `tbl_listings` (`listing_id`, `title`, `details`, `category_id`, `starting_price`, `reserve_price`, `end_date`, `user_id`, `is_active`, `created_at`, `deleted_at`) VALUES
+(1, 'Mountain Bike', 'A bike that bikes', 7, '60', '100', '2023-04-20 17:55', 1, 1, '2022-11-14 17:49:50', NULL),
+(2, 'MACBOOK 2020', 'Does cool things', 10, '350', '450', '2023-04-20 17:55', 2, 1, '2022-11-14 17:51:29', NULL),
+(3, 'IPAD MINI', 'Never used', 10, '3000', '400','2023-04-20 17:55', 3, 1, '2022-11-14 17:51:29', NULL),
+(4, 'IPHONE 20', 'Camera broken', 9, '120', '300','2023-04-20 17:55', 4, 1, '2022-11-14 17:51:29', NULL);
+
+INSERT INTO `biding` (`bid_id`, `listing_id`, `user_id`, `biding_price`, `biding_time`) VALUES
+(1, 2, 1, '350.00', '2022-12-09 18:45:06'),
+(2, 1, 1, '60.00', '2022-12-09 18:48:18'),
+(3, 3, 1, '3000.00', '2022-12-09 18:48:27'),
+(4, 4, 1, '120.00', '2022-12-09 18:48:35');
+
+
+COMMIT;
+
